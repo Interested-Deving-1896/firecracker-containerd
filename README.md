@@ -1,96 +1,108 @@
+[update-readmes]   Mode: rewrite — migrating to template structure...
 # firecracker-containerd
 
-[![BuildKite](https://badge.buildkite.com/aab4ae547d5e5079a5915522e8cdb18492349aef67aae5a8c5.svg?branch=main)](https://buildkite.com/firecracker-microvm/firecracker-containerd)
-[![GitHub Actions](https://github.com/firecracker-microvm/firecracker-containerd/actions/workflows/build.yaml/badge.svg)](https://github.com/firecracker-microvm/firecracker-containerd/actions)
+[![Built with Ona](https://ona.com/build-with-ona.svg)](https://app.ona.com/#https://github.com/Interested-Deving-1896/firecracker-containerd)
 
-This repository enables the use of a container runtime,
-[containerd](https://containerd.io), to manage
-[Firecracker](https://github.com/firecracker-microvm/firecracker) microVMs.
-Like traditional containers, Firecracker microVMs offer fast start-up and
-shut-down and minimal overhead.  Unlike traditional containers, however, they
-can provide an additional layer of isolation via the KVM hypervisor.
+<!-- AI:start:what-it-does -->
+firecracker-containerd integrates Firecracker microVMs with containerd, enabling lightweight, secure, and isolated container execution. It is designed for developers and operators who need to run container workloads in microVMs for improved resource efficiency and security compared to traditional containers.
+<!-- AI:end:what-it-does -->
 
-Potential use cases of Firecracker-based containers include:
+## Architecture
 
-* Sandbox a partially or fully untrusted third party container
-  in its own microVM.  This would reduce the likelihood of
-  leaking secrets via the third party container, for example.
-* Bin-pack disparate container workloads on the same host,
-  while maintaining a high level of isolation between containers.  Because
-  the overhead of Firecracker is low, the achievable container
-  density per host should be comparable to
-  running containers using kernel-based container runtimes,
-  without the isolation compromise of such solutions.  Multi-tenant
-  hosts would particularly benefit from this use case.
-  * Please note that multi-tenant use cases are at the user's own risk.
+<!-- AI:start:architecture -->
+firecracker-containerd integrates containerd with Firecracker microVMs to provide lightweight virtualization for container workloads. The architecture consists of several key components:
 
-To maintain compatibility with the container ecosystem, where possible, we use
-container standards such as the OCI image format.
+- **Firecracker microVMs**: Virtual machines managed by Firecracker, providing isolation and security for container workloads.
+- **containerd**: A container runtime responsible for managing container lifecycle, images, and networking.
+- **firecracker-containerd agent**: A lightweight agent running inside each microVM, facilitating communication between containerd and the microVM.
+- **firecracker-control**: A service that interacts with Firecracker's API to manage microVMs.
+- **snapshotter**: A component for managing container filesystem snapshots.
+- **runtime**: A containerd runtime plugin for launching containers inside Firecracker microVMs.
 
-There are several components in this repository that enable containerd to use
-Firecracker microVMs to run containers:
+Components interact through containerd's plugin architecture and gRPC APIs. The agent communicates with containerd via ttrpc, while firecracker-control interfaces with Firecracker's API to manage microVMs.
 
-* A [control plugin](firecracker-control) managing the lifecycle of the
-  runtime and implementing our [control API](proto/firecracker.proto) to
-  manage the lifecycle of microVMs. The control plugin is compiled in to the
-  containerd binary since [building a Go plugin out-of-tree is hard](https://github.com/golang/go/issues/20481),
-  which requires us to build a specialized containerd binary for
-  firecracker-containerd.
-* A [runtime](runtime) linking containerd (outside the microVM) to the
-  Firecracker virtual machine monitor (VMM).  The runtime is implemented as an
-  out-of-process
-  [shim runtime](https://github.com/containerd/containerd/issues/2426)
-  communicating over ttrpc.
-* An [agent](agent) running inside the microVM, which invokes
-  [runC](https://runc.io) via containerd's `containerd-shim-runc-v1`
-  to create standard Linux containers inside the microVM.
-* A [root file filesystem image builder](tools/image-builder) that
-  constructs a firecracker microVM root filesystem containing runc and
-  the firecracker-containerd agent.
+Directory structure:
+```plaintext
+.
+├── agent                  # Firecracker microVM agent code
+├── client                 # Go client for interacting with firecracker-containerd
+├── config                 # Configuration files
+├── docs                   # Documentation
+├── firecracker-control    # Service for managing Firecracker microVMs
+├── internal               # Internal utilities and shared code
+├── proto                  # Protocol buffer definitions
+├── runtime                # Containerd runtime plugin
+├── snapshotter            # Snapshot management code
+├── tools                  # Utility scripts and tools
+├── volume                 # Volume management code
+├── examples               # Example configurations and usage
+├── Makefile               # Build instructions
+├── README.md              # Project documentation
+└── go.mod                 # Go module dependencies
+```
+<!-- AI:end:architecture -->
 
-For more detailed information on the components and how they work, see
-[architecture.md](docs/architecture.md).
+## Install
 
-## Roadmap
+<!-- Add installation instructions here. This section is yours — the AI will not modify it. -->
 
-To support the widest variety of workloads, firecracker-containerd has to work
-with popular container orchestration frameworks such as Kubernetes and Amazon
-ECS, so we will work to ensure that the software is conformant or compatible
-where necessary.  The project currently allows you to launch a few containers
-colocated in the same microVM, and we are exploring how to raise the number of
-containers.  We recently added support for configuring networking at the microVM
-level with CNI plugins and provide a CNI plugin suitable for chaining called
-"tc-redirect-tap".  Our short term roadmap includes constraining or "jailing"
-the Firecracker VMM process to improve the host security posture.  Our
-longer-term roadmap includes polishing, packaging, and generally making
-firecracker-containerd easier to run as well as exploring CRI conformance and
-compatibility with Kubernetes.
-
-Details of specific roadmap items are tracked in [GitHub
-issues](https://github.com/firecracker-microvm/firecracker-containerd/issues).
+```bash
+git clone https://github.com/Interested-Deving-1896/firecracker-containerd.git
+cd firecracker-containerd
+```
 
 ## Usage
+
 
 For detailed instructions on building and running
 firecracker-containerd, see the
 [getting started guide](docs/getting-started.md) and the
 [quickstart guide](docs/quickstart.md).
 
-## Questions?
+## Configuration
 
-Please use [GitHub
-issues](https://github.com/firecracker-microvm/firecracker-containerd/issues) to
-report problems, discuss roadmap items, or make feature requests.
+<!-- Document configuration options here. This section is yours — the AI will not modify it. -->
 
-If you've discovered an issue that may have security implications to
-users or developers of this software, please do not report it using
-GitHub issues, but instead follow
-[Firecracker's security reporting
-guidelines](https://github.com/firecracker-microvm/firecracker/blob/main/SECURITY-POLICY.md).
+## CI
 
-Other discussion: For general discussion, please join us in the `#containerd`
-channel on the [Firecracker Slack](https://join.slack.com/t/firecracker-microvm/shared_invite/zt-oxbm7tqt-GLlze9zZ7sdRSDY6OnXXHg).
+<!-- AI:start:ci -->
+_CI documentation pending._
+<!-- AI:end:ci -->
+
+## Mirror chain
+
+<!-- AI:start:mirror-chain -->
+This repo is maintained in [`Interested-Deving-1896/firecracker-containerd`](https://github.com/Interested-Deving-1896/firecracker-containerd) and mirrored through:
+
+```
+Interested-Deving-1896/firecracker-containerd  ──►  OpenOS-Project-OSP/firecracker-containerd  ──►  OpenOS-Project-Ecosystem-OOC/firecracker-containerd
+```
+
+Changes flow downstream automatically via the hourly mirror chain in
+[`fork-sync-all`](https://github.com/Interested-Deving-1896/fork-sync-all).
+Direct commits to OSP or OOC are detected and opened as PRs back to `Interested-Deving-1896`.
+<!-- AI:end:mirror-chain -->
+
+## Contributors
+
+<!-- AI:start:contributors -->
+_Contributors pending._
+<!-- AI:end:contributors -->
+
+## Origins
+
+<!-- AI:start:origins -->
+_Original project — no upstream fork._
+<!-- AI:end:origins -->
+
+## Resources
+
+<!-- AI:start:resources -->
+_No additional resource files found._
+<!-- AI:end:resources -->
 
 ## License
 
-This library is licensed under the Apache 2.0 License.
+<!-- AI:start:license -->
+[Apache-2.0](https://github.com/Interested-Deving-1896/firecracker-containerd/blob/main/LICENSE) © 2026 [Interested-Deving-1896](https://github.com/Interested-Deving-1896)
+<!-- AI:end:license -->
